@@ -2,6 +2,27 @@ const yargs = require("yargs");
 const file_system = require("fs");
 const {output_file} = require("./config/config.json");
 
+function init() {
+    function generate_file() {
+        const prepared_data = JSON.stringify({ notes: [] });
+        file_system.writeFileSync(output_file, prepared_data);
+        console.log(`[*] "${output_file}" generated, do not take care of the previous error`);
+    }
+
+    const data = file_system.readFileSync(output_file);
+    try {
+        const file_content = JSON.parse(data);
+        if(!('notes' in file_content)) {
+            generate_file();
+        }
+    } catch(error) {
+        console.error(error);
+        generate_file();
+    }
+}
+
+init();
+
 yargs.version("1.0.0");
 
 yargs.command({
@@ -71,6 +92,47 @@ yargs.command({
                 }
             } else {
                 console.error(`[-] An error occurred while reading the file: ${error}`)
+            }
+        });
+    }
+});
+
+yargs.command({
+    command: 'list',
+    describe: 'List all the stored notes',
+    handler: () => {
+        file_system.readFile(output_file, (error, data) => {
+            if(!error) {
+                const notes = JSON.parse(data).notes;
+                if(notes.length > 0) {
+                    console.log('[*] Notes:')
+                    notes.forEach(note => console.log(`- ${note.title}`));
+                } else {
+                    console.error('[-] There is no notes to list');
+                }
+            }
+        })
+    }
+});
+
+yargs.command({
+    command: 'read',
+    describe: 'Displays entirely a note',
+    builder: {
+        title: {
+            describe: 'The name of the note to display',
+            demandOption: true,
+            type: 'string'
+        }
+    },
+    handler: (arguments) => {
+        file_system.readFile(output_file, (error, data) => {
+            if(!error) {
+                const notes = JSON.parse(data).notes;
+                const note_to_display = notes.find(note => note.title === arguments.title);
+                console.log(`\n# ${note_to_display.title}\n${note_to_display.body}\n`);
+            } else {
+                console.error(`[-] An error occurred while reading the file: ${error}`);
             }
         });
     }
