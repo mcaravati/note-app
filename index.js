@@ -2,9 +2,12 @@ const yargs = require("yargs");
 const file_system = require("fs");
 const {output_file} = require("./config/config.json");
 
+/**
+ * Inits the program by checking if the output file is correctly formatted
+ */
 function init() {
     function generate_file() {
-        const prepared_data = JSON.stringify({ notes: [] });
+        const prepared_data = JSON.stringify({notes: []});
         file_system.writeFileSync(output_file, prepared_data);
         console.log(`[*] "${output_file}" generated, do not take care of the previous error`);
     }
@@ -12,10 +15,10 @@ function init() {
     const data = file_system.readFileSync(output_file);
     try {
         const file_content = JSON.parse(data);
-        if(!('notes' in file_content)) {
+        if (!('notes' in file_content)) {
             generate_file();
         }
-    } catch(error) {
+    } catch (error) {
         console.error(error);
         generate_file();
     }
@@ -47,7 +50,7 @@ yargs.command({
             if (!error) {
                 const notes = JSON.parse(data);
                 const note_exists = (notes.notes.find(note => note.title === arguments.title) !== undefined);
-                if(!note_exists) {
+                if (!note_exists) {
                     notes.notes.push(note);
                     const prepared_note = JSON.stringify(notes);
                     file_system.writeFile(output_file, prepared_note, () => {
@@ -77,10 +80,10 @@ yargs.command({
     handler: (arguments) => {
         console.error('[-] Removing note ...');
         file_system.readFile(output_file, (error, data) => {
-            if(!error) {
+            if (!error) {
                 const notes = JSON.parse(data);
                 const searched_note = notes.notes.find(note => note.title === arguments.title);
-                if(searched_note) {
+                if (searched_note) {
                     const note_index = notes.notes.indexOf(searched_note);
                     notes.notes.splice(note_index, 1);
                     const prepared_data = JSON.stringify(notes);
@@ -102,9 +105,9 @@ yargs.command({
     describe: 'List all the stored notes',
     handler: () => {
         file_system.readFile(output_file, (error, data) => {
-            if(!error) {
+            if (!error) {
                 const notes = JSON.parse(data).notes;
-                if(notes.length > 0) {
+                if (notes.length > 0) {
                     console.log('[*] Notes:')
                     notes.forEach(note => console.log(`- ${note.title}`));
                 } else {
@@ -127,7 +130,7 @@ yargs.command({
     },
     handler: (arguments) => {
         file_system.readFile(output_file, (error, data) => {
-            if(!error) {
+            if (!error) {
                 const notes = JSON.parse(data).notes;
                 const note_to_display = notes.find(note => note.title === arguments.title);
                 console.log(`\n# ${note_to_display.title}\n${note_to_display.body}\n`);
